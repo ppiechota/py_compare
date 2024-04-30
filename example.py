@@ -26,15 +26,26 @@ def format_deepdiff_output(diff):
     for key, changes in diff.items():
         if changes:
             output_lines.append(f"{key.capitalize()}:")
-            for item_path, change_detail in changes.items():
-                # Calculate depth by counting the number of brackets in the path
-                depth = item_path.count('[')
-                indent = '    ' * depth  # Using four spaces for each level of indentation
-                if isinstance(change_detail, dict) and 'new_value' in change_detail:
-                    output_lines.append(f"{indent}At {item_path}, changed from {change_detail['old_value']} to {change_detail['new_value']}.")
-                else:
-                    output_lines.append(f"{indent}At {item_path}, {change_detail}.")
+            if isinstance(changes, dict):
+                for item_path, change_detail in changes.items():
+                    # Apply indentation based on depth
+                    depth = item_path.count('[')
+                    indent = '    ' * depth  # Using four spaces for each level of indentation
+                    if isinstance(change_detail, dict) and 'new_value' in change_detail:
+                        output_lines.append(f"{indent}At {item_path}, changed from {change_detail['old_value']} to {change_detail['new_value']}.")
+                    else:
+                        output_lines.append(f"{indent}At {item_path}, {change_detail}.")
+            elif isinstance(changes, list):
+                for item in changes:
+                    # This assumes the list items are strings describing the changes
+                    depth = item.count('[')
+                    indent = '    ' * depth  # Using four spaces for each level of indentation
+                    output_lines.append(f"{indent}{item}")
+            else:
+                # Handle non-list, non-dict types conservatively
+                output_lines.append(f"  {changes}")
     return "\n".join(output_lines)
+
 
 
 def main(file1, file2):
